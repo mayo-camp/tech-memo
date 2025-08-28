@@ -1,25 +1,27 @@
 name: Create Markdown from Issue
 
-permissions:
-  contents: write
-
+# Issue 作成・編集時にトリガー
 on:
   issues:
     types: [opened, edited]
+
+permissions:
+  contents: write
 
 jobs:
   generate-md:
     runs-on: ubuntu-latest
 
     steps:
+      # リポジトリをチェックアウト
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 変数設定（タイトル・保存先ディレクトリ・プレフィックス）
       - name: Set variables
         id: vars
         run: |
           RAW_TITLE="${{ github.event.issue.title }}"
-          # タイトルのプレフィックス除去: [用語] Ansible → Ansible
           TITLE=$(echo "$RAW_TITLE" | sed -E 's/^\[.*\]\s*//')
           SAFE_TITLE=$(echo "$TITLE" | tr ' ' '_' | tr -cd '[:alnum:]_-')
 
@@ -43,19 +45,21 @@ jobs:
           echo "dir=$DIR" >> $GITHUB_OUTPUT
           echo "prefix=$PREFIX" >> $GITHUB_OUTPUT
 
+      # Markdown ファイル作成
       - name: Create markdown file
         run: |
-          mkdir -p ${{ steps.vars.outputs.dir }}
+          mkdir -p "${{ steps.vars.outputs.dir }}"
           FILE="${{ steps.vars.outputs.dir }}/${{ steps.vars.outputs.safe_title }}.md"
           echo "# ${{ steps.vars.outputs.title }}" > "$FILE"
           echo "" >> "$FILE"
           echo "${{ github.event.issue.body }}" >> "$FILE"
 
+      # Git でコミット＆Push
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git add ${{ steps.vars.outputs.dir }}/
+          git add "${{ steps.vars.outputs.dir }}/"
           git commit -m "Add ${{ steps.vars.outputs.prefix }}: ${{ steps.vars.outputs.title }}" || echo "No changes to commit"
           git push --force
