@@ -1,0 +1,54 @@
+name: 技術用語テンプレート
+description: 技術用語や技術要素の記録用
+title: "[用語] "
+labels: [tech-term]
+assignees: mayo-camp
+
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 📝 概要
+      description: この用語や技術の簡潔な説明を記載してください
+    validations:
+      required: true
+
+  - type: input
+    id: language
+    attributes:
+      label: 💻 言語
+      placeholder: JavaScript, YAML など
+
+  - type: textarea
+    id: usage
+    attributes:
+      label: 🎯 使い所
+      description: どのような場面で使うか記述してください
+
+  - type: textarea
+    id: merit
+    attributes:
+      label: ✅ メリット
+      description: 利点や特徴を記述してください
+
+  - type: textarea
+    id: demerit
+    attributes:
+      label: ⚠️ デメリット
+      description: 注意点・制約などがあれば記載
+
+  - type: textarea
+    id: prereq
+    attributes:
+      label: 🔧 前提条件
+      description: 利用に必要な前提知識など
+
+  - type: textarea
+    id: usage_example
+    attributes:
+      label: 🛠 使用方法
+      description: コード例などがあれば記述してください
+      placeholder: |
+        ```js
+        const ref = useRef(null);
+        ```

@@ -1,0 +1,57 @@
+name: Create Markdown from Issue
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  generate-md:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set variables
+        id: vars
+        run: |
+          RAW_TITLE="${{ github.event.issue.title }}"
+          TITLE=$(echo "$RAW_TITLE" | sed -E 's/^\[.*\]\s*//')
+          SAFE_TITLE=$(echo "$TITLE" | tr ' ' '_' | tr -cd '[:alnum:]_-')
+
+          # ラベルごとに保存先を切り替え
+          if echo "${{ toJson(github.event.issue.labels) }}" | grep -q '"tech-term"'; then
+            DIR="tech-term"
+            PREFIX="Tech term"
+          elif echo "${{ toJson(github.event.issue.labels) }}" | grep -q '"workflow-memo"'; then
+            DIR="workflow-memo"
+            PREFIX="Workflow memo"
+          elif echo "${{ toJson(github.event.issue.labels) }}" | grep -q '"error-report"'; then
+            DIR="error-report"
+            PREFIX="Error report"
+          else
+            DIR="others"
+            PREFIX="Note"
+          fi
+
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          echo "safe_title=$SAFE_TITLE" >> $GITHUB_OUTPUT
+          echo "dir=$DIR" >> $GITHUB_OUTPUT
+          echo "prefix=$PREFIX" >> $GITHUB_OUTPUT
+
+      - name: Create markdown file
+        run: |
+          mkdir -p ${{ steps.vars.outputs.dir }}
+          FILE="${{ steps.vars.outputs.dir }}/${{ steps.vars.outputs.safe_title }}.md"
+          echo "# ${{ steps.vars.outputs.title }}" > "$FILE"
+          echo "" >> "$FILE"
+          echo "${{ github.event.issue.body }}" >> "$FILE"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git add ${{ steps.vars.outputs.dir }}/
+          git commit -m "Add ${{ steps.vars.outputs.prefix }}: ${{ steps.vars.outputs.title }}" || echo "No changes to commit"
+          git push

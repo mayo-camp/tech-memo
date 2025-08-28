@@ -1,0 +1,41 @@
+name: エラー記録テンプレート
+description: 遭遇したエラーとその対処方法を記録
+title: "[エラー] "
+labels: [error-report]
+assignees: mayo-camp
+
+body:
+  - type: input
+    id: error-title
+    attributes:
+      label: 🐛 エラー名 / 現象名
+      placeholder: "例: Module not found: Can't resolve 'react'"
+
+  - type: textarea
+    id: error-message
+    attributes:
+      label: 💬 エラーメッセージ
+      description: 実際に出力されたエラー全文を貼り付けてください
+      placeholder: |
+        ```
+        Error: Cannot find module 'express'
+        at ...
+        ```
+
+  - type: textarea
+    id: cause
+    attributes:
+      label: 🧠 原因
+      description: エラーの原因が判明していれば記述してください
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 🛠 対処法・解決方法
+      description: 解決した手順や参考にした情報を記載してください
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: 🗒 備考・再発防止策など
+      description: 関連情報、注意点、他への影響など

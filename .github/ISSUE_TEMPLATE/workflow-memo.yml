@@ -1,0 +1,35 @@
+name: 作業手順テンプレート
+description: 手順・記録用テンプレート
+title: "[手順] "
+labels: [workflow-memo]
+assignees: mayo-camp
+
+body:
+  - type: textarea
+    id: overview
+    attributes:
+      label: 📄 概要
+      description: 作業の目的・概要を記述してください
+    validations:
+      required: true
+
+  - type: textarea
+    id: prerequisites
+    attributes:
+      label: 🔧 前提条件
+      description: 実施前に必要な環境や準備
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 🪜 手順
+      description: ステップバイステップで記載してください
+      placeholder: |
+        1. フォルダを作成
+        2. コマンドを実行
+        3. 結果を確認
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: 🗒 備考・注意点
