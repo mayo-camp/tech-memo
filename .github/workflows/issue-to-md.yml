@@ -19,14 +19,14 @@ jobs:
           TITLE=$(echo "$RAW_TITLE" | sed -E 's/^\[.*\]\s*//')
           SAFE_TITLE=$(echo "$TITLE" | tr ' ' '_' | tr -cd '[:alnum:]_-')
 
-          # ラベルごとに保存先を切り替え
-          if echo "${{ toJson(github.event.issue.labels) }}" | grep -q '"tech-term"'; then
+          # ラベルごとに保存先とプレフィックスを切り替え
+          if contains(github.event.issue.labels.*.name, 'tech-term'); then
             DIR="tech-term"
             PREFIX="Tech term"
-          elif echo "${{ toJson(github.event.issue.labels) }}" | grep -q '"workflow-memo"'; then
+          elif contains(github.event.issue.labels.*.name, 'workflow-memo'); then
             DIR="workflow-memo"
             PREFIX="Workflow memo"
-          elif echo "${{ toJson(github.event.issue.labels) }}" | grep -q '"error-report"'; then
+          elif contains(github.event.issue.labels.*.name, 'error-report'); then
             DIR="error-report"
             PREFIX="Error report"
           else
@@ -41,17 +41,14 @@ jobs:
 
       - name: Create markdown file
         run: |
-          mkdir -p ${{ steps.vars.outputs.dir }}
+          mkdir -p "${{ steps.vars.outputs.dir }}"
           FILE="${{ steps.vars.outputs.dir }}/${{ steps.vars.outputs.safe_title }}.md"
-          echo "# ${{ steps.vars.outputs.title }}" > "$FILE"
-          echo "" >> "$FILE"
-          echo "${{ github.event.issue.body }}" >> "$FILE"
+          printf "# %s\n\n%s\n" "${{ steps.vars.outputs.title }}" "${{ github.event.issue.body }}" > "$FILE"
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git add ${{ steps.vars.outputs.dir }}/
+          git add -u "${{ steps.vars.outputs.dir }}/"
           git commit -m "Add ${{ steps.vars.outputs.prefix }}: ${{ steps.vars.outputs.title }}" || echo "No changes to commit"
           git push
