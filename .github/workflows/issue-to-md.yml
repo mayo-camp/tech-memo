@@ -1,5 +1,8 @@
 name: Create Markdown from Issue
 
+permissions:
+  contents: write
+
 on:
   issues:
     types: [opened, edited]
