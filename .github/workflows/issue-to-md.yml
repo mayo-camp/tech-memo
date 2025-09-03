@@ -26,13 +26,13 @@ jobs:
           SAFE_TITLE=$(echo "$TITLE" | tr ' ' '_' | tr -cd '[:alnum:]_-')
 
           # ラベルに応じて保存先ディレクトリとプレフィックスを設定
-          if echo "${{ toJson(github.event.issue.labels) }}" | grep -q '"tech-term"'; then
+          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"name":"tech-term"'; then
             DIR="tech-term"
             PREFIX="Tech term"
-          elif echo "${{ toJson(github.event.issue.labels) }}" | grep -q '"workflow-memo"'; then
+          elif echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"name":"workflow-memo"'; then
             DIR="workflow-memo"
             PREFIX="Workflow memo"
-          elif echo "${{ toJson(github.event.issue.labels) }}" | grep -q '"error-report"'; then
+          elif echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"name":"error-report"'; then
             DIR="error-report"
             PREFIX="Error report"
           else
