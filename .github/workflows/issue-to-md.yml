@@ -1,38 +1,62 @@
 name: Create Markdown from Issue
 
-# Issue 作成・編集時にトリガー
 on:
   issues:
     types: [opened, edited]
 
 permissions:
   contents: write
+  issues: write  # コメント投稿権限が必要
 
 jobs:
   generate-md:
     runs-on: ubuntu-latest
 
     steps:
-      # リポジトリをチェックアウト
+      # リポジトリチェックアウト
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 変数設定（タイトル・保存先ディレクトリ・プレフィックス）
-      - name: Set variables
-        id: vars
+      # 変数設定・ラベル検証
+      - name: Validate labels
+        id: validate
         run: |
           RAW_TITLE="${{ github.event.issue.title }}"
           TITLE=$(echo "$RAW_TITLE" | sed -E 's/^\[.*\]\s*//')
           SAFE_TITLE=$(echo "$TITLE" | tr ' ' '_' | tr -cd '[:alnum:]_-')
 
-          # ラベルに応じて保存先ディレクトリとプレフィックスを設定
-          if echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"name":"tech-term"'; then
+          LABELS='${{ toJson(github.event.issue.labels) }}'
+          COUNT=$(echo "$LABELS" | jq '[.[] | select(.name=="tech-term" or .name=="workflow-memo" or .name=="error-report")] | length')
+
+          MESSAGE=""
+          # ラベル不足
+          if [ "$COUNT" -eq 0 ]; then
+            MESSAGE="❌ Error: tech-term / workflow-memo / error-report のいずれか1つを必ず付けてください。"
+          # ラベル重複
+          elif [ "$COUNT" -gt 1 ]; then
+            MESSAGE="❌ Error: tech-term / workflow-memo / error-report は複数同時に付けられません（現在 $COUNT 個）。"
+          fi
+
+          if [ -n "$MESSAGE" ]; then
+            # Issue にコメントを投稿
+            curl -s -X POST \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d "{\"body\": \"$MESSAGE\"}" \
+              "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments"
+
+            echo "$MESSAGE" >&2
+            exit 1
+          fi
+
+          # 保存先フォルダ決定
+          if echo "$LABELS" | jq -e '.[] | select(.name=="tech-term")' >/dev/null; then
             DIR="tech-term"
             PREFIX="Tech term"
-          elif echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"name":"workflow-memo"'; then
+          elif echo "$LABELS" | jq -e '.[] | select(.name=="workflow-memo")' >/dev/null; then
             DIR="workflow-memo"
             PREFIX="Workflow memo"
-          elif echo '${{ toJson(github.event.issue.labels) }}' | grep -q '"name":"error-report"'; then
+          elif echo "$LABELS" | jq -e '.[] | select(.name=="error-report")' >/dev/null; then
             DIR="error-report"
             PREFIX="Error report"
           else
@@ -40,6 +64,7 @@ jobs:
             PREFIX="Note"
           fi
 
+          # 出力用
           echo "title=$TITLE" >> $GITHUB_OUTPUT
           echo "safe_title=$SAFE_TITLE" >> $GITHUB_OUTPUT
           echo "dir=$DIR" >> $GITHUB_OUTPUT
@@ -48,18 +73,18 @@ jobs:
       # Markdown ファイル作成
       - name: Create markdown file
         run: |
-          mkdir -p "${{ steps.vars.outputs.dir }}"
-          FILE="${{ steps.vars.outputs.dir }}/${{ steps.vars.outputs.safe_title }}.md"
-          echo "# ${{ steps.vars.outputs.title }}" > "$FILE"
+          mkdir -p "${{ steps.validate.outputs.dir }}"
+          FILE="${{ steps.validate.outputs.dir }}/${{ steps.validate.outputs.safe_title }}.md"
+          echo "# ${{ steps.validate.outputs.title }}" > "$FILE"
           echo "" >> "$FILE"
           echo "${{ github.event.issue.body }}" >> "$FILE"
 
-      # Git でコミット＆Push
+      # Git コミット＆Push
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git add "${{ steps.vars.outputs.dir }}/"
-          git commit -m "Add ${{ steps.vars.outputs.prefix }}: ${{ steps.vars.outputs.title }}" || echo "No changes to commit"
+          git add "${{ steps.validate.outputs.dir }}/"
+          git commit -m "Add ${{ steps.validate.outputs.prefix }}: ${{ steps.validate.outputs.title }}" || echo "No changes to commit"
           git push --force
