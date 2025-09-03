@@ -31,10 +31,18 @@ jobs:
           INPUT_MD="README.md"
           OUTPUT_PDF="${FILE_NAME}-${PAPER_SIZE}.pdf"
 
-          # LaTeX オプションの指定
+          # 紙サイズに応じたgeometryオプションを設定
+          case "$PAPER_SIZE" in
+            A5) GEOMETRY="paperwidth=148mm,paperheight=210mm";;
+            B5) GEOMETRY="paperwidth=176mm,paperheight=250mm";;
+            A4) GEOMETRY="a4paper";;
+            B4) GEOMETRY="b4paper";;
+            *) GEOMETRY="a4paper";;
+          esac
+
           pandoc "$INPUT_MD" \
             --pdf-engine=xelatex \
-            -V geometry:${PAPER_SIZE},margin=12.7mm \
+            -V geometry:"$GEOMETRY,margin=12.7mm" \
             -o "$OUTPUT_PDF"
 
       - name: Upload PDF as artifact
