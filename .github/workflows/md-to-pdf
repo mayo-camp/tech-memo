@@ -1,0 +1,44 @@
+name: Convert Markdown to PDF
+
+on:
+  push:
+    paths:
+      - '*.md'
+  workflow_dispatch:
+    inputs:
+      paper:
+        description: 'Paper size (A5, B5, A4, B4)'
+        required: true
+        default: 'A4'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pandoc and TeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
+
+      - name: Convert Markdown to PDF
+        run: |
+          PAPER_SIZE="${{ github.event.inputs.paper }}"
+          FILE_NAME="document"
+          INPUT_MD="README.md"
+          OUTPUT_PDF="${FILE_NAME}-${PAPER_SIZE}.pdf"
+
+          # LaTeX オプションの指定
+          pandoc "$INPUT_MD" \
+            --pdf-engine=xelatex \
+            -V geometry:${PAPER_SIZE},margin=12.7mm \
+            -o "$OUTPUT_PDF"
+
+      - name: Upload PDF as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-pdf
+          path: "*.pdf"
