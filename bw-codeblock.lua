@@ -1,19 +1,22 @@
--- bw-codeblock.lua
--- Lua フィルター: Pandoc Markdown → LaTeX tcolorbox（白黒印刷用）
--- 特殊文字 (# % $ _ { } \) をエスケープして安全に出力
+-- Lua フィルター: コードブロック＆インラインコードの高度対応
 
--- LaTeX 用に特殊文字をエスケープする関数
 local function escape_latex(str)
-  str = str:gsub("\\", "\\textbackslash{}")  -- バックスラッシュ
-  str = str:gsub("([#%%&$_{}])", "\\%1")     -- # % & $ _ { }
+  str = str:gsub("\\", "\\textbackslash{}")
+  str = str:gsub("([#%%&$_{}])", "\\%1")
   return str
 end
 
--- コードブロック変換
+-- コードブロック
 function CodeBlock(block)
   local content = escape_latex(block.text)
+  -- 改行長い行にも対応する tcolorbox
   return pandoc.RawBlock(
     'latex',
     string.format("\\begin{codeblock}\n%s\n\\end{codeblock}", content)
   )
+end
+
+-- インラインコード
+function Code(el)
+  return pandoc.RawInline('latex', string.format("\\inlinecode{%s}", escape_latex(el.text)))
 end
