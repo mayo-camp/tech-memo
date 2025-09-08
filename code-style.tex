@@ -2,12 +2,15 @@
 \usepackage{tcolorbox}
 \tcbuselibrary{listingsutf8}
 
-% コードブロック用のスタイル
+\usepackage{needspace} % 改ページ防止用
+\raggedbottom          % 不自然な空白改ページを減らす
+
+% コードブロック用のスタイル（白黒印刷向け）
 \newtcolorbox{codeblock}{
-  colback=gray!10,       % 背景色（薄いグレー）
-  colframe=gray!30,      % 枠線の色
-  boxrule=0.5pt,         % 枠線の太さ
-  arc=2mm,               % 角丸
+  colback=gray!15,       % 背景色（薄いグレー）
+  colframe=gray!50,      % 枠線（濃いグレー）
+  boxrule=0.5pt,
+  arc=1.5mm,
   left=4pt, right=4pt, top=4pt, bottom=4pt,
   listing only,
   listing options={
@@ -15,3 +18,6 @@
     breaklines=true
   }
 }
+
+% 見出し前に最低限確保する行数
+\newcommand{\sectionbreak}{\Needspace{3\baselineskip}}
