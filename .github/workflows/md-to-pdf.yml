@@ -1,4 +1,4 @@
-name: Markdown to PDF (All Files)
+name: Markdown to PDF (All Files, Safe)
 
 on:
   push:
@@ -10,40 +10,29 @@ jobs:
 
     steps:
       # リポジトリをチェックアウト
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      # texlive キャッシュ
-      - name: Cache texlive
-        id: cache-texlive
-        uses: actions/cache@v4
-        with:
-          path: /usr/share/texlive
-          key: ${{ runner.os }}-texlive-all-md
-          restore-keys: |
-            ${{ runner.os }}-texlive-
-
-      # LaTeX をインストール（キャッシュされていない場合のみ）
-      - name: Install LaTeX
-        if: steps.cache-texlive.outputs.cache-hit != 'true'
+      # 日本語フォントをインストール
+      - name: Install Japanese fonts
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            texlive-xetex \
-            texlive-fonts-recommended \
-            texlive-plain-generic
+          sudo apt-get install -y fonts-ipafont-gothic fonts-ipafont-mincho fonts-noto-cjk
+
+      # LaTeX をインストール
+      - name: Install LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-xetex texlive-fonts-recommended texlive-plain-generic
 
       # Pandoc をインストール
       - name: Install Pandoc
         run: sudo apt-get install -y pandoc
 
-      # Markdown を PDF に変換（全ファイル対象）
+      # PDF を全 Markdown ファイルから生成
       - name: Convert all Markdown to PDF
         run: |
           mkdir -p pdf
-          # リポジトリ内の全 .md ファイルを検索
           find . -name '*.md' ! -name 'README.md' | while read file; do
-            # ディレクトリ構造を維持して PDF に変換
             filepath=$(dirname "$file")
             filename=$(basename "$file" .md)
             mkdir -p "pdf/$filepath"
@@ -51,12 +40,17 @@ jobs:
               --pdf-engine=xelatex \
               -V geometry:a4paper \
               -V geometry:margin=15mm \
-              -V mainfont="DejaVu Serif"
+              -V mainfont="Noto Serif CJK JP"
           done
 
-      # PDF をアーティファクトとして保存
-      - name: Upload PDF artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: all-markdown-pdfs
-          path: pdf/
+      # PDF をリポジトリにコミット（無限ループ防止）
+      - name: Commit PDF files safely
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pdf/
+          # 差分がある場合のみ commit
+          if ! git diff --cached --quiet; then
+            git commit -m "Update PDFs from workflow [skip ci]"
+            git push
+          fi
