@@ -1,23 +1,35 @@
-% code-style.tex
-
 \usepackage{tcolorbox}
 \tcbuselibrary{listingsutf8}
+\tcbuselibrary{breakable} % 長いコードをページ跨ぎで分割可能
 
-\usepackage{needspace} % 改ページ防止用
-\raggedbottom          % 不自然な空白改ページを減らす
+\usepackage{xcolor}
+\usepackage{needspace}
+\usepackage{fvextra}      % verbatim 改行サポート
+\usepackage{geometry}
+\geometry{b5paper, top=12.7mm, bottom=12.7mm, left=12.7mm, right=12.7mm}
+\raggedbottom
 
-% コードブロック用のスタイル（白黒印刷向け）
+% コードブロック
 \newtcolorbox{codeblock}{
-  colback=gray!15,       % 背景色（薄いグレー）
-  colframe=gray!50,      % 枠線（濃いグレー）
+  breakable,              % ページ跨ぎで分割可能
+  enhanced,
+  colback=gray!15,
+  colframe=gray!50,
   boxrule=0.5pt,
   arc=1.5mm,
   left=4pt, right=4pt, top=4pt, bottom=4pt,
   listing only,
   listing options={
     basicstyle=\ttfamily\footnotesize,
-    breaklines=true
+    breaklines=true,
+    breakatwhitespace=true,
+    columns=flexible,     % 長い行の折り返し改善
   }
+}
+
+% インラインコード
+\newcommand{\inlinecode}[1]{%
+  \colorbox{gray!15}{\ttfamily #1}%
 }
 
 % 見出し前に最低限確保する行数
