@@ -1,8 +1,9 @@
-name: Markdown to PDF (B5, Gothic, Code Styled, BW)
+name: Markdown to PDF
 
 on:
   push:
-    branches: [main]
+    paths:
+      - "**/*.md"
   workflow_dispatch:
 
 jobs:
@@ -10,58 +11,68 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # リポジトリをチェックアウト
+      # ソース取得
       - uses: actions/checkout@v3
 
-      # 日本語ゴシックフォントをインストール
-      - name: Install Japanese fonts
+      # Node.js セットアップ
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # 依存パッケージインストール
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk fonts-ipafont-gothic
+          npm install -g puppeteer marked
 
-      # LaTeX をインストール
-      - name: Install LaTeX
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y texlive-xetex texlive-fonts-recommended texlive-plain-generic
-
-      # Pandoc をインストール
-      - name: Install Pandoc
-        run: sudo apt-get install -y pandoc
-
-      # PDF を全 Markdown ファイルから生成
-      - name: Convert all Markdown to PDF
+      # PDF 生成
+      - name: Convert Markdown to PDF
         run: |
           mkdir -p pdf
-          find . -name '*.md' ! -name 'README.md' | while read file
-          do
-            filepath=$(dirname "$file")
-            filename=$(basename "$file" .md)
-            mkdir -p "pdf/$filepath"
-            pandoc "$file" -o "pdf/$filepath/${filename}.pdf" \
-              --pdf-engine=xelatex \
-              -H code-style.tex \
-              -V geometry:b5paper \
-              -V geometry:top=12.7mm \
-              -V geometry:bottom=12.7mm \
-              -V geometry:left=12.7mm \
-              -V geometry:right=12.7mm \
-              -V mainfont="Noto Sans CJK JP" \
-              -V fontsize=8pt \
-              -V linestretch=1.3 \
-              --lua-filter=bw-codeblock.lua
+          for file in $(git diff --name-only HEAD^ HEAD | grep '\.md$' || true); do
+            echo "Processing $file ..."
+            base=$(basename "$file" .md)
+            dir=$(dirname "$file")
+
+            # HTML生成
+            npx marked "$file" > "$dir/$base.html"
+            curl -s -O https://raw.githubusercontent.com/sindresorhus/github-markdown-css/main/github-markdown.css
+            echo '<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="github-markdown.css"></head><body class="markdown-body">' > header.html
+            echo '</body></html>' > footer.html
+            cat header.html "$dir/$base.html" footer.html > "$dir/full.html"
+
+            # PDF生成（Markdownと同階層を基準）
+            node -e "
+            const puppeteer = require('puppeteer');
+            (async () => {
+              const browser = await puppeteer.launch();
+              const page = await browser.newPage();
+              await page.goto('file://' + process.cwd() + '/$dir/full.html', {waitUntil: 'networkidle0'});
+              await page.pdf({path: 'pdf/${base}.pdf', format: 'A4', printBackground: true});
+              await browser.close();
+            })();
+            "
           done
 
-      # PDF をリポジトリにコミット（競合は自動で最新版を優先）
-      - name: Commit PDF files safely
+      # PDF専用リポジトリに push
+      - name: Push PDFs to PDF repository
+        env:
+          PDF_REPO_TOKEN: ${{ secrets.PDF_REPO_TOKEN }}
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pdf/
 
-          if ! git diff --cached --quiet; then
-            # 競合時はリモートを優先して自動解決
-            git commit -m "Update PDFs from workflow [skip ci]" || true
-            git pull --rebase --strategy=recursive -X theirs origin main
+          # PDFリポジトリを一時フォルダにクローン
+          git clone https://x-access-token:${PDF_REPO_TOKEN}@github.com/username/pdf-repo.git pdf-temp
+          
+          # 生成PDFをコピー
+          cp pdf/*.pdf pdf-temp/
+
+          cd pdf-temp
+          git add .
+          if git diff --cached --quiet; then
+            echo "No PDF changes to commit."
+          else
+            git commit -m "chore: update PDFs from main repository"
             git push
           fi
