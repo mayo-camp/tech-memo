@@ -52,7 +52,7 @@ jobs:
               --lua-filter=bw-codeblock.lua
           done
 
-      # PDF をリポジトリにコミット（無限ループ防止）
+      # PDF をリポジトリにコミット（競合は自動で最新版を優先）
       - name: Commit PDF files safely
         run: |
           git config --global user.name "github-actions[bot]"
@@ -60,7 +60,8 @@ jobs:
           git add pdf/
 
           if ! git diff --cached --quiet; then
-            git commit -m "Update PDFs from workflow [skip ci]"
-            git pull --rebase origin main
+            # 競合時はリモートを優先して自動解決
+            git commit -m "Update PDFs from workflow [skip ci]" || true
+            git pull --rebase --strategy=recursive -X theirs origin main
             git push
           fi
