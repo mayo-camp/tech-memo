@@ -1,11 +1,4 @@
-name: Convert Markdown to PDF
-
-on:
-  push:
-    paths:
-      - "**/*.md"
-    branches:
-      - mainname: Markdown to PDF
+name: Markdown to PDF
 
 on:
   push:
@@ -16,19 +9,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      # リポジトリをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
+      # LaTeX をインストール
       - name: Install LaTeX
         run: |
           sudo apt-get update
-          sudo apt-get install -y texlive-xetex texlive-fonts-recommended texlive-plain-generic
+          sudo apt-get install -y \
+            texlive-xetex \
+            texlive-fonts-recommended \
+            texlive-plain-generic
 
+      # Pandoc をインストール
       - name: Install Pandoc
         run: sudo apt-get install -y pandoc
 
+      # Markdown ファイルを PDF に変換
       - name: Convert Markdown to PDF
         run: |
           mkdir -p pdf
+          # 前回コミットとの差分で変更された md ファイルを処理
           for file in $(git diff --name-only HEAD^ HEAD | grep '\.md$' | grep -v 'README.md'); do
             filename=$(basename "$file" .md)
             pandoc "$file" -o "pdf/${filename}.pdf" \
@@ -37,58 +39,3 @@ jobs:
               -V geometry:margin=15mm \
               -V mainfont="DejaVu Serif"
           done
-
-
-jobs:
-  md-to-pdf:あ
-    runs-on: ubuntu-latest
-
-    steps:
-      # 1. リポジトリをフル履歴でチェックアウト
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # ← これで rebase が可能になる
-
-      # 2. Git ユーザー設定
-      - name: Set Git user
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      # 3. Pandoc と LaTeX のインストール
-      - name: Install Pandoc and LaTeX
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pandoc \
-            texlive-latex-base \
-            texlive-fonts-recommended \
-            texlive-fonts-extra \
-            texlive-latex-extra
-
-      # 4. Markdown を PDF に変換（上書き）
-      - name: Convert Markdown to PDF
-        run: |
-          mkdir -p pdf
-          for file in $(git diff --name-only HEAD^ HEAD | grep '\.md$' | grep -v 'README.md'); do
-            filename=$(basename "$file" .md)
-            pandoc "$file" -o "pdf/${filename}.pdf" \
-              --pdf-engine=xelatex \
-              -V geometry:a4paper \
-              -V geometry:margin=15mm \
-              -V mainfont="DejaVu Serif"
-          done
-
-      # 5. PDF 変更をコミット（差分がなければスキップ）
-      - name: Commit PDF
-        run: |
-          git add pdf/*.pdf || true
-          git diff --cached --quiet && echo "No PDF changes to commit" || git commit -m "Auto-generate PDF from Markdown"
-
-      # 6. 最新の main ブランチを取り込み
-      - name: Pull latest changes
-        run: git pull --rebase origin main
-
-      # 7. push（上書き更新）
-      - name: Push PDF changes
-        run: git push origin main
