@@ -2,6 +2,7 @@
 
 - [cat コマンド](command/cat.md)
 - [chmod コマンド](command/chmod.md)
+- [dos2unix と unix2dos の比較](command/dos2unix-unix2dos-compare.md)
 - [ls コマンド](command/ls.md)
 - [mkdir コマンド](command/mkdir.md)
 - [nano コマンド](command/nano.md)
