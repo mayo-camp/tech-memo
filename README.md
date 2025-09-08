@@ -1,6 +1,6 @@
 # Index
 
-- [catコマンド](command/cat.md)
+- [cat コマンド](command/cat.md)
 - [chmod コマンド](command/chmod.md)
 - [ls コマンド](command/ls.md)
 - [mkdir コマンド](command/mkdir.md)
