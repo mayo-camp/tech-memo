@@ -28,14 +28,14 @@ jobs:
       # Lua フィルター用に作業ディレクトリにコピー
       - name: Create Lua filter
         run: |
-          cat <<EOT > bw-codeblock.lua
--- Lua フィルター: fenced code blocks を codeblock 環境で出力
-function CodeBlock(block)
-  local lang = block.classes[1] or ""
-  local content = block.text
-  return pandoc.RawBlock('latex', string.format("\\begin{codeblock}\n%s\n\\end{codeblock}", content))
-end
-EOT
+          cat << 'EOT' > bw-codeblock.lua
+          -- Lua フィルター: fenced code blocks を codeblock 環境で出力
+          function CodeBlock(block)
+            local lang = block.classes[1] or ""
+            local content = block.text
+            return pandoc.RawBlock('latex', string.format("\\begin{codeblock}\n%s\n\\end{codeblock}", content))
+          end
+          EOT
 
       # PDF を全 Markdown ファイルから生成
       - name: Convert all Markdown to PDF
