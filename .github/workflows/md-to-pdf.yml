@@ -1,4 +1,4 @@
-name: Markdown to PDF (B5, Gothic, Code Styled)
+name: Markdown to PDF (B5, Gothic, Code Styled, BW)
 
 on:
   push:
@@ -46,7 +46,8 @@ jobs:
               -V geometry:right=12.7mm \
               -V mainfont="Noto Sans CJK JP" \
               -V fontsize=10pt \
-              -V linestretch=1.3
+              -V linestretch=1.3 \
+              --listings
           done
 
       # PDF をリポジトリにコミット（無限ループ防止）
