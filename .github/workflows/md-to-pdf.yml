@@ -1,4 +1,4 @@
-name: Markdown to PDF
+name: Markdown to PDF (All Files)
 
 on:
   push:
@@ -13,8 +13,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # LaTeX をインストール
+      # texlive キャッシュ
+      - name: Cache texlive
+        id: cache-texlive
+        uses: actions/cache@v3
+        with:
+          path: /usr/share/texlive
+          key: ${{ runner.os }}-texlive-all-md
+          restore-keys: |
+            ${{ runner.os }}-texlive-
+
+      # LaTeX をインストール（キャッシュされていない場合のみ）
       - name: Install LaTeX
+        if: steps.cache-texlive.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -26,16 +37,26 @@ jobs:
       - name: Install Pandoc
         run: sudo apt-get install -y pandoc
 
-      # Markdown ファイルを PDF に変換
-      - name: Convert Markdown to PDF
+      # Markdown を PDF に変換（全ファイル対象）
+      - name: Convert all Markdown to PDF
         run: |
           mkdir -p pdf
-          # 前回コミットとの差分で変更された md ファイルを処理
-          for file in $(git diff --name-only HEAD^ HEAD | grep '\.md$' | grep -v 'README.md'); do
+          # リポジトリ内の全 .md ファイルを検索
+          find . -name '*.md' ! -name 'README.md' | while read file; do
+            # ディレクトリ構造を維持して PDF に変換
+            filepath=$(dirname "$file")
             filename=$(basename "$file" .md)
-            pandoc "$file" -o "pdf/${filename}.pdf" \
+            mkdir -p "pdf/$filepath"
+            pandoc "$file" -o "pdf/$filepath/${filename}.pdf" \
               --pdf-engine=xelatex \
               -V geometry:a4paper \
               -V geometry:margin=15mm \
               -V mainfont="DejaVu Serif"
           done
+
+      # PDF をアーティファクトとして保存
+      - name: Upload PDF artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: all-markdown-pdfs
+          path: pdf/
