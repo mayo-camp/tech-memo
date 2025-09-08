@@ -33,7 +33,8 @@ jobs:
       - name: Convert all Markdown to PDF
         run: |
           mkdir -p pdf
-          find . -name '*.md' ! -name 'README.md' | while read file; do
+          find . -name '*.md' ! -name 'README.md' | while read file
+          do
             filepath=$(dirname "$file")
             filename=$(basename "$file" .md)
             mkdir -p "pdf/$filepath"
@@ -49,6 +50,7 @@ jobs:
               -V fontsize=10pt \
               -V linestretch=1.3 \
               --lua-filter=bw-codeblock.lua
+          done
 
       # PDF をリポジトリにコミット（無限ループ防止）
       - name: Commit PDF files safely
