@@ -12,11 +12,11 @@ jobs:
       # リポジトリをチェックアウト
       - uses: actions/checkout@v3
 
-      # 日本語フォントをインストール
+      # 日本語ゴシックフォントをインストール
       - name: Install Japanese fonts
         run: |
           sudo apt-get update
-          sudo apt-get install -y fonts-ipafont-gothic fonts-ipafont-mincho fonts-noto-cjk
+          sudo apt-get install -y fonts-noto-cjk fonts-ipafont-gothic
 
       # LaTeX をインストール
       - name: Install LaTeX
@@ -38,9 +38,14 @@ jobs:
             mkdir -p "pdf/$filepath"
             pandoc "$file" -o "pdf/$filepath/${filename}.pdf" \
               --pdf-engine=xelatex \
-              -V geometry:a4paper \
-              -V geometry:margin=15mm \
-              -V mainfont="Noto Serif CJK JP"
+              -V geometry:b5paper \
+              -V geometry:top=12.7mm \
+              -V geometry:bottom=12.7mm \
+              -V geometry:left=12.7mm \
+              -V geometry:right=12.7mm \
+              -V mainfont="Noto Sans CJK JP" \
+              -V fontsize=10pt \
+              -V linestretch=1.3
           done
 
       # PDF をリポジトリにコミット（無限ループ防止）
