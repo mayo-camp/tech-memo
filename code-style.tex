@@ -1,0 +1,17 @@
+% code-style.tex
+\usepackage{tcolorbox}
+\tcbuselibrary{listingsutf8}
+
+% コードブロック用のスタイル
+\newtcolorbox{codeblock}{
+  colback=gray!10,       % 背景色（薄いグレー）
+  colframe=gray!30,      % 枠線の色
+  boxrule=0.5pt,         % 枠線の太さ
+  arc=2mm,               % 角丸
+  left=4pt, right=4pt, top=4pt, bottom=4pt,
+  listing only,
+  listing options={
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true
+  }
+}
