@@ -10,24 +10,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # リポジトリをチェックアウト
       - uses: actions/checkout@v3
 
-      # 日本語ゴシックフォントをインストール
       - name: Install Japanese fonts
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-noto-cjk fonts-ipafont-gothic
 
-      # LaTeX をインストール
       - name: Install LaTeX
         run: |
           sudo apt-get update
           sudo apt-get install -y texlive-xetex texlive-fonts-recommended texlive-plain-generic
 
-      # Pandoc をインストール
       - name: Install Pandoc
         run: sudo apt-get install -y pandoc
+
+      # Lua フィルター用に作業ディレクトリにコピー
+      - name: Create Lua filter
+        run: |
+          cat <<EOT > bw-codeblock.lua
+-- Lua フィルター: fenced code blocks を codeblock 環境で出力
+function CodeBlock(block)
+  local lang = block.classes[1] or ""
+  local content = block.text
+  return pandoc.RawBlock('latex', string.format("\\begin{codeblock}\n%s\n\\end{codeblock}", content))
+end
+EOT
 
       # PDF を全 Markdown ファイルから生成
       - name: Convert all Markdown to PDF
@@ -48,10 +56,9 @@ jobs:
               -V mainfont="Noto Sans CJK JP" \
               -V fontsize=10pt \
               -V linestretch=1.3 \
-              --listings
+              --lua-filter=bw-codeblock.lua
           done
 
-      # PDF をリポジトリにコミット（無限ループ防止）
       - name: Commit PDF files safely
         run: |
           git config --global user.name "github-actions[bot]"
@@ -60,8 +67,5 @@ jobs:
           
           if ! git diff --cached --quiet; then
             git commit -m "Update PDFs from workflow [skip ci]"
-            # リモートの変更を取り込んでリベース
             git pull --rebase origin main
             git push
-          fi
-          
