@@ -1,46 +1,57 @@
+% GitHub風 コードブロック & インラインコード
+
 \usepackage{tcolorbox}
-\tcbuselibrary{listingsutf8}
-\usepackage{needspace}
-\usepackage{xcolor}
-\usepackage{float}
-\usepackage{array}
+\tcbuselibrary{listings}
+\tcbuselibrary{breakable}
 
-\raggedbottom % 不自然な空白改ページを減らす
+% カラー設定（GitHub風）
+\definecolor{gh-bg}{HTML}{F6F8FA}     % 背景色
+\definecolor{gh-border}{HTML}{D0D7DE} % 枠線色
 
-% 表を左寄せにする設定
-\makeatletter
-\renewenvironment{table}[1][htbp]{%
-  \@float{table}[H]%
-}{%
-  \end@float
-}
-\makeatother
-
-% コードブロック用のスタイル（GitHub風, モノクロ印刷対応）
-\newtcolorbox{codeblock}{
-  breakable,
-  colback=gray!15,
-  colframe=gray!50,
-  boxrule=0.5pt,
-  arc=1.5mm,
-  left=6pt, right=6pt, top=6pt, bottom=6pt,
+% コードブロック環境
+\newtcblisting{codeblock}{
   listing only,
+  breakable,
+  colback=gh-bg,
+  colframe=gh-border,
+  boxrule=0.3pt,
+  arc=2pt,
+  outer arc=2pt,
+  left=5pt,
+  right=5pt,
+  top=5pt,
+  bottom=5pt,
   listing options={
     basicstyle=\ttfamily\footnotesize,
+    columns=fullflexible,
     breaklines=true,
-    breakatwhitespace=true,
-    columns=flexible,
+    keepspaces=true,
+    showstringspaces=false
   }
 }
 
-% インラインコード用のスタイル（GitHub風）
-\definecolor{inlinegray}{gray}{0.9}
-\newcommand{\inlinecode}[1]{%
-  \begingroup
-  \setlength{\fboxsep}{1pt}%
-  \colorbox{inlinegray}{\texttt{#1}}%
-  \endgroup
+% インラインコード (`code`)
+\newtcbox{\icode}{
+  on line,
+  colback=gh-bg,
+  colframe=gh-border,
+  boxrule=0.3pt,
+  arc=2pt,
+  outer arc=2pt,
+  left=2pt,
+  right=2pt,
+  top=1pt,
+  bottom=1pt,
+  boxsep=0pt,
+  fontupper=\ttfamily\footnotesize
 }
 
-% 見出し前に最低限確保する行数
-\newcommand{\sectionbreak}{\Needspace{3\baselineskip}}
+% 表を GitHub風（横線のみ、左寄せ）
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+
+\renewcommand{\arraystretch}{1.2} % 行の高さ調整
+\setlength{\tabcolsep}{6pt}       % セル左右余白
+\LTleft=0pt
+\LTright=0pt
