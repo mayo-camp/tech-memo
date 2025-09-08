@@ -1,9 +1,9 @@
 # Index
 
-- [chmod](command/chmod.md)
-- [chmod](command/chmod.md)
+- [chmodコマンド](command/chmod.md)
 - [lsコマンド](command/ls.md)
-- [umask](command/umask.md)
-- [umask](command/umask.md)
-- [パーミッション（アクセス権）](command/permission.md)
+- [lsコマンド](command/ls.md)
+- [lsコマンド](command/ls.md)
+- [lsコマンド](command/ls.md)
+- [umaskコマンド](command/umask.md)
 - [パーミッション（アクセス権）](command/permission.md)
