@@ -3,7 +3,7 @@ name: Convert Markdown to PDF
 on:
   push:
     paths:
-      - "**/*.md"
+      - "**/*.md"   # .md ファイルが変更されたときのみ実行
     branches:
       - main
 
@@ -18,8 +18,29 @@ jobs:
       - name: Install Pandoc and LaTeX
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
+          sudo apt-get install -y pandoc \
+            texlive-latex-base \
+            texlive-fonts-recommended \
+            texlive-fonts-extra \
+            texlive-latex-extra
 
       - name: Convert Markdown to PDF
         run: |
           mkdir -p pdf
+          # 直近のコミットで変更のあった md ファイルを取得（README.md 除外）
+          for file in $(git diff --name-only HEAD^ HEAD | grep '\.md$' | grep -v 'README.md'); do
+            filename=$(basename "$file" .md)
+            pandoc "$file" -o "pdf/${filename}.pdf" \
+              --pdf-engine=xelatex \
+              -V geometry:a4paper \
+              -V geometry:margin=15mm \
+              -V mainfont="DejaVu Serif"
+          done
+
+      - name: Commit and push PDF files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pdf/*.pdf || true
+          git diff --cached --quiet && echo "No PDF changes to commit" || git commit -m "Auto-generate PDF from Markdown"
+          git push
