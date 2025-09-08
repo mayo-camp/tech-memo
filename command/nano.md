@@ -16,7 +16,7 @@ LinuxやmacOSのターミナル、WSL、Git Bashなど（Windows単体環境で�
 nano ファイル名
 ```
 
-- 確認コマンド：ファイル内容を表示（[catコマンド](cat.md)）
+- 確認コマンド：ファイル内容を表示（[cat コマンド](cat.md)）
 
   ```bash
   cat ファイル名
