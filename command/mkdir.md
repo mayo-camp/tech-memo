@@ -1,4 +1,4 @@
-# mkdir コマンド
+# [mkdir コマンド](mkdir.md)
 
 - 読み方：メイクディレクトリ
 - 意味：make directory の略
