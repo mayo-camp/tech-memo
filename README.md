@@ -10,3 +10,4 @@
 - [sudo コマンド](command/sudo.md)
 - [umask コマンド](command/umask.md)
 - [パーミッション（アクセス権限）](command/permission.md)
+- [パーミッション（アクセス権）](command/permission.md)
