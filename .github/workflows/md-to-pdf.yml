@@ -3,50 +3,23 @@ name: Convert Markdown to PDF
 on:
   push:
     paths:
-      - '*.md'
-  workflow_dispatch:
-    inputs:
-      paper:
-        description: 'Paper size (A5, B5, A4, B4)'
-        required: true
-        default: 'A4'
+      - "**/*.md"
+    branches:
+      - main
 
 jobs:
-  build:
+  md-to-pdf:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install pandoc and TeX
+      - name: Install Pandoc and LaTeX
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
+          sudo apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
 
       - name: Convert Markdown to PDF
         run: |
-          PAPER_SIZE="${{ github.event.inputs.paper }}"
-          FILE_NAME="document"
-          INPUT_MD="README.md"
-          OUTPUT_PDF="${FILE_NAME}-${PAPER_SIZE}.pdf"
-
-          # 紙サイズに応じたgeometryオプションを設定
-          case "$PAPER_SIZE" in
-            A5) GEOMETRY="paperwidth=148mm,paperheight=210mm";;
-            B5) GEOMETRY="paperwidth=176mm,paperheight=250mm";;
-            A4) GEOMETRY="a4paper";;
-            B4) GEOMETRY="b4paper";;
-            *) GEOMETRY="a4paper";;
-          esac
-
-          pandoc "$INPUT_MD" \
-            --pdf-engine=xelatex \
-            -V geometry:"$GEOMETRY,margin=12.7mm" \
-            -o "$OUTPUT_PDF"
-
-      - name: Upload PDF as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: generated-pdf
-          path: "*.pdf"
+          mkdir -p pdf
