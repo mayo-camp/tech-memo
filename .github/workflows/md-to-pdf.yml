@@ -16,7 +16,7 @@ jobs:
       # texlive キャッシュ
       - name: Cache texlive
         id: cache-texlive
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /usr/share/texlive
           key: ${{ runner.os }}-texlive-all-md
@@ -56,7 +56,7 @@ jobs:
 
       # PDF をアーティファクトとして保存
       - name: Upload PDF artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: all-markdown-pdfs
           path: pdf/
