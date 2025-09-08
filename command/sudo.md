@@ -163,7 +163,7 @@ sudo rm -rf /opt/myapp
   myapp
   ```
 
-## [sudo と su コマンドの違い](sudo-su-compare.md)
+## [sudo と su コマンドの比較](sudo-su-compare.md)
 
 ## 注意点
 
