@@ -47,7 +47,7 @@ jobs:
               -V geometry:left=12.7mm \
               -V geometry:right=12.7mm \
               -V mainfont="Noto Sans CJK JP" \
-              -V fontsize=10pt \
+              -V fontsize=8pt \
               -V linestretch=1.3 \
               --lua-filter=bw-codeblock.lua
           done
