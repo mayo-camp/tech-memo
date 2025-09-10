@@ -3,6 +3,7 @@
 - [cat コマンド](command/cat.md)
 - [chmod コマンド](command/chmod.md)
 - [dos2unix と unix2dos の比較](command/dos2unix-unix2dos-compare.md)
+- [history コマンド](command/history.md)
 - [ls コマンド](command/ls.md)
 - [mkdir コマンド](command/mkdir.md)
 - [nano コマンド](command/nano.md)
@@ -10,3 +11,4 @@
 - [sudo コマンド](command/sudo.md)
 - [umask コマンド](command/umask.md)
 - [パーミッション（アクセス権）](command/permission.md)
+- [環境変数](command/環境変数.md)
