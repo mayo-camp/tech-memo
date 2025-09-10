@@ -11,4 +11,5 @@
 - [sudo コマンド](command/sudo.md)
 - [umask コマンド](command/umask.md)
 - [パーミッション（アクセス権）](command/permission.md)
+- [環境変数](concept/environment-variable.md)
 - [環境変数](command/環境変数.md)
