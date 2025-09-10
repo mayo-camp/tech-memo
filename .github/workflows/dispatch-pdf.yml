@@ -14,5 +14,5 @@ jobs:
         uses: peter-evans/repository-dispatch@v2
         with:
           token: ${{ secrets.PDF_REPO_TOKEN }}
-          repository: your-username/tech-memo-pdf
+          repository: mayo-camp/tech-memo-pdf
           event-type: build-pdf
